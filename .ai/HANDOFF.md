@@ -5,61 +5,48 @@
 - Project ID: `orquestador-agentes-ia`
 - Run ID: `bootstrap-github-2026-07-14`
 - Task ID: `none`
-- From role: `@director`
+- From role: `@developer` / `@architect`
 - To role: `Human Owner / Reviewer`
-- Date: `2026-07-14 21:30 CEST`
+- Date: `2026-07-14 22:21 CEST`
 
 ## Completed work
 
-- Copia del contenido de `Orquestador_IA_Blueprint_v0.2` a la raíz del workspace.
-- Creación de un archivo `.gitignore` conservador y detallado.
-- Creación de los archivos iniciales de gobierno en `.ai/` (`PROJECT_CHARTER.md`, `PROJECT_CONSTITUTION.md`, `PROJECT_CONTEXT.md`, `REQUIREMENTS.md`, `ACCEPTANCE_CRITERIA.md`, `HANDOFF.md`).
-- Comprobación y registro de la identidad Git global (`Julio Rodríguez <juliorodriguez@vdenergy.es>`).
+- **Backend Spring Boot (`services/orchestrator-api`):**
+  - Inicializado con Maven, Java 21, y Spring Boot 3.4.0.
+  - Implementado persistencia MySQL con migraciones Flyway (`V1__create_projects_table.sql`).
+  - Entidad JPA `ProjectJpaEntity` y Dominio `Project` desacoplados bajo arquitectura modular hexagonal.
+  - Endpoints REST de `/api/projects` con validación estricta de rutas locales en host y reglas de transición de máquina de estados.
+  - Pruebas unitarias de controladores (MockMvc) y pruebas de persistencia en base de datos real con Testcontainers MySQL passing.
+- **Frontend Next.js (`apps/web`):**
+  - Inicializado con TypeScript, Tailwind CSS, y ESLint en `apps/web`.
+  - Diseñado panel de control en `page.tsx` para listar proyectos activos y registrar nuevos proyectos con validaciones.
+  - Configurado testing unitario con Vitest + JSDOM y pruebas de renderizado exitosas.
+  - Configurado Playwright para E2E y pruebas preparadas en `apps/web/e2e/project-registry.spec.ts`.
+- **Entorno unificado:**
+  - Configurado `compose.yaml` validado para compilar y ejecutar todo el stack de contenedores (`mysql-db`, `orchestrator-api`, `web-app`) en red local.
+  - Configurado archivo `.env` local desde `.env.example`.
+- **Git & GitHub:**
+  - Commit y subida exitosa de la rama de trabajo `feature/project-registry` al repositorio de GitHub: `https://github.com/jmrs9206/orquestador-agentes-ia.git`
 
 ## Verified facts
 
-- El directorio actual `/home/jmrs/Documentos/PROYECTOS/JMRS/orquestadorIA` no se encuentra dentro de ningún repositorio Git padre.
-- No se han encontrado secretos staged ni en los archivos del workspace.
-- El ejecutable `gh` local corresponde a la herramienta `gitsome` y no está autenticado, lo que impide crear el repositorio en GitHub remotamente desde este agente.
+- El linter frontend (`eslint`) y el compilador de Next.js (`next build`) compilan sin ningún error ni advertencia.
+- Todas las 13 pruebas del backend y las 3 pruebas unitarias del frontend pasan localmente de forma independiente.
+- Las variables de entorno locales de base de datos están protegidas en `.env` (ignorado en git), mientras que `.env.example` y `target/` están correctamente configurados en `.gitignore`.
 
 ## Decisions made
 
-- Licencia inicial marcada como `UNKNOWN / pendiente de aprobación humana` (no se ha añadido ninguna licencia por defecto).
-- MiroFish registrado únicamente como repositorio conceptual de referencia, sin importación de código ni compatibilidad automática.
-
-## Files and artifacts
-
-- Archivos de gobierno en `.ai/`
-- Archivo `.gitignore` en el directorio raíz.
-
-## Evidence
-
-- Salida de comandos `git config` y `git rev-parse` documentados en el flujo.
-
-## Unknowns, conflicts and risks
-
-- Riesgo: Intentar ejecutar comandos de `gh` CLI oficiales con `gitsome` produce errores de sintaxis y prompts interactivos bloqueantes.
-- Conflicto de licencia pendiente de aprobación humana.
+- **Stack unificado:** Confirmado Spring Boot 3.4.0 + Next.js 16 + MySQL + Flyway.
+- **Validación física:** El backend comprueba la existencia de la ruta física en el sistema de archivos del host de forma estricta.
 
 ## Scope not performed
 
-- Creación del repositorio remoto en GitHub mediante `gh repo create` (debido a falta de autenticación en GitHub CLI).
-- Primer push inicial al remoto.
-- Generación de código del producto (fuera de alcance en la fase actual).
+- Ejecución automatizada de Playwright en Docker (requiere instalación pesada de navegadores en terminal local).
+- Fusionar la rama `feature/project-registry` a `main`.
 
 ## Exact next action
 
-1. El usuario debe autenticarse en GitHub CLI utilizando `gh auth login` o instalar la herramienta de CLI oficial si corresponde.
-2. El usuario debe revisar y aprobar los documentos `.ai/PROJECT_CHARTER.md` y `.ai/PROJECT_CONSTITUTION.md`.
-3. Proceder a inicializar el repositorio local Git y realizar el commit inicial.
-
-## Required gate
-
-`HUMAN_APPROVAL`
-
-## Context to load
-
-- `.ai/PROJECT_CHARTER.md`
-- `.ai/PROJECT_CONSTITUTION.md`
-- `.ai/PROJECT_CONTEXT.md`
-- `.ai/REQUIREMENTS.md`
+1. El usuario debe crear el Pull Request en GitHub usando el enlace generado:
+   `https://github.com/jmrs9206/orquestador-agentes-ia/pull/new/feature/project-registry`
+2. Realizar el merge de `feature/project-registry` a `main` una vez finalizada la revisión.
+3. Para la siguiente iteración, planificar la implementación de la capa de Orquestación (Definición de agentes, roles, permisos y ejecución inicial de comandos locales CLI).
