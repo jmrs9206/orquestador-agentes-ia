@@ -4,49 +4,46 @@
 
 - Project ID: `orquestador-agentes-ia`
 - Run ID: `bootstrap-github-2026-07-14`
-- Task ID: `none`
+- Task ID: `task-006, task-007, task-008`
 - From role: `@developer` / `@architect`
 - To role: `Human Owner / Reviewer`
-- Date: `2026-07-14 22:21 CEST`
+- Date: `2026-07-14 22:42 CEST`
 
 ## Completed work
 
-- **Backend Spring Boot (`services/orchestrator-api`):**
-  - Inicializado con Maven, Java 21, y Spring Boot 3.4.0.
-  - Implementado persistencia MySQL con migraciones Flyway (`V1__create_projects_table.sql`).
-  - Entidad JPA `ProjectJpaEntity` y Dominio `Project` desacoplados bajo arquitectura modular hexagonal.
-  - Endpoints REST de `/api/projects` con validación estricta de rutas locales en host y reglas de transición de máquina de estados.
-  - Pruebas unitarias de controladores (MockMvc) y pruebas de persistencia en base de datos real con Testcontainers MySQL passing.
-- **Frontend Next.js (`apps/web`):**
-  - Inicializado con TypeScript, Tailwind CSS, y ESLint en `apps/web`.
-  - Diseñado panel de control en `page.tsx` para listar proyectos activos y registrar nuevos proyectos con validaciones.
-  - Configurado testing unitario con Vitest + JSDOM y pruebas de renderizado exitosas.
-  - Configurado Playwright para E2E y pruebas preparadas en `apps/web/e2e/project-registry.spec.ts`.
-- **Entorno unificado:**
-  - Configurado `compose.yaml` validado para compilar y ejecutar todo el stack de contenedores (`mysql-db`, `orchestrator-api`, `web-app`) en red local.
-  - Configurado archivo `.env` local desde `.env.example`.
-- **Git & GitHub:**
-  - Commit y subida exitosa de la rama de trabajo `feature/project-registry` al repositorio de GitHub: `https://github.com/jmrs9206/orquestador-agentes-ia.git`
+- **Diseño de Orquestación (`docs/adr/ADR-003-orchestration-layer.md`):**
+  - Diseñado el motor de agentes, tareas y ejecuciones.
+  - Planificada la puerta humana preventora de comandos de riesgo y revisión cruzada.
+- **Backend Persistencia (`task-006`):**
+  - Creada migración SQL `V2__create_orchestration_tables.sql`.
+  - Diseñadas entidades de dominio, JPA y adaptadores de repositorio para `Agent`, `Task` y `Execution`.
+- **Motor CLI Runner (`task-007`):**
+  - Implementado `CliRunner` asíncrono seguro con `ProcessBuilder`, limpiando el entorno de secretos e inyectando solo variables de entorno seguras.
+  - Salida física de subprocesos escrita en tiempo real a `.ai/logs/`.
+- **API REST y Human Gate (`task-008`):**
+  - Controladores REST expuestos para registrar agentes, administrar tareas y ejecutar comandos CLI.
+  - Control de riesgo que intercepta comandos tipo `git push` o `npm publish` poniéndolos en `WAITING_APPROVAL`.
+  - Validación de revisión cruzada que impide que el asignado y el revisor de una tarea sean el mismo agente al marcarla como `DONE`.
+- **Pruebas integrales:**
+  - Creadas suites en `OrchestrationRepositoryTest.java`, `CliRunnerTest.java` y `OrchestratorControllerTest.java`. Las 22 pruebas compilan y pasan en verde.
 
 ## Verified facts
 
-- El linter frontend (`eslint`) y el compilador de Next.js (`next build`) compilan sin ningún error ni advertencia.
-- Todas las 13 pruebas del backend y las 3 pruebas unitarias del frontend pasan localmente de forma independiente.
-- Las variables de entorno locales de base de datos están protegidas en `.env` (ignorado en git), mientras que `.env.example` y `target/` están correctamente configurados en `.gitignore`.
+- Las migraciones de base de datos Flyway V1 y V2 se ejecutan correctamente sobre el contenedor dinámico de MySQL 8.
+- La ejecución de comandos CLI escribe logs físicamente en `.ai/logs/` y los lee asíncronamente desde el endpoint del controlador.
+- Intentar auto-aprobar una tarea como revisor siendo el mismo asignado retorna error HTTP 400.
 
 ## Decisions made
 
-- **Stack unificado:** Confirmado Spring Boot 3.4.0 + Next.js 16 + MySQL + Flyway.
-- **Validación física:** El backend comprueba la existencia de la ruta física en el sistema de archivos del host de forma estricta.
+- **Gestión de Logs:** Uso nativo de `ProcessBuilder.redirectOutput(File)` para volcado eficiente y seguro a disco en lugar de buffers en memoria.
+- **Códigos de rechazo:** Rechazar una ejecución por parte del usuario humano asigna estado `FAILED` y código `-2`.
 
 ## Scope not performed
 
-- Ejecución automatizada de Playwright en Docker (requiere instalación pesada de navegadores en terminal local).
-- Fusionar la rama `feature/project-registry` a `main`.
+- Componentes del frontend de Next.js (`task-009`) y pruebas de Playwright E2E correspondientes (`task-010`).
 
 ## Exact next action
 
-1. El usuario debe crear el Pull Request en GitHub usando el enlace generado:
-   `https://github.com/jmrs9206/orquestador-agentes-ia/pull/new/feature/project-registry`
-2. Realizar el merge de `feature/project-registry` a `main` una vez finalizada la revisión.
-3. Para la siguiente iteración, planificar la implementación de la capa de Orquestación (Definición de agentes, roles, permisos y ejecución inicial de comandos locales CLI).
+1. Revisar los archivos implementados en la rama remota `feature/orchestration-layer`.
+2. Aprobar el backend del motor de orquestación.
+3. Autorizar el inicio del Frontend (`task-009`) escribiendo **"proceder"**.
