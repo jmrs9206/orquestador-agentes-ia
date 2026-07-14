@@ -3,7 +3,7 @@
 ## Context identity
 
 - Project ID: `orquestador-agentes-ia`
-- Context version: `0.5`
+- Context version: `0.6`
 - Repository root: `/home/jmrs/Documentos/PROYECTOS/JMRS/orquestadorIA`
 - Branch/worktree: `feature/project-registry`
 - Commit verified: `41a1343cd4083308e6ffbf8921940b99b99a74c5`
@@ -44,6 +44,11 @@ Inicialización local y remota del orquestador multiproyecto con reglas de gobie
   TASK_003_FRONTEND_INIT.md
   TASK_004_FRONTEND_REGISTRY.md
   TASK_005_INTEGRATION_E2E.md
+  TASK_006_ORCHESTRATOR_DOMAIN.md
+  TASK_007_ORCHESTRATOR_RUNNER.md
+  TASK_008_ORCHESTRATOR_REST.md
+  TASK_009_ORCHESTRATOR_FRONTEND.md
+  TASK_010_ORCHESTRATOR_INTEGRATION.md
 apps/
   web/                          # Next.js Frontend App
 docs/
@@ -95,7 +100,7 @@ README.md
 |---|---|---|---|
 | ADR-001 | Selección de stack definitivo (Java, Next.js, MySQL, Maven) | ACCEPTED | ADR-002 anterior |
 | ADR-002 | Diseño del Project Registry (Estados y API REST) | PROPOSED | - |
-| ADR-003 | Visibilidad de repositorio remoto como Público por autorización humana | ACCEPTED | - |
+| ADR-003 | Diseño de la Capa de Orquestación y Ejecución de Agentes | PROPOSED | - |
 
 ## External systems and contracts
 
@@ -107,8 +112,8 @@ README.md
 
 ## Current iteration
 
-- Goal: Creación del esqueleto del monorepo y el módulo Project Registry (task-001 a task-005).
-- Approved tasks: Inicializar Spring Boot con base de datos MySQL, crear controladores REST con máquina de estados, inicializar Next.js con Tailwind, configurar compose.yaml y Playwright E2E.
+- Goal: Diseño y planificación del motor de Orquestación y Ejecución de Agentes (task-006 a task-010).
+- Approved tasks: Modelado de persistencia de agentes y ejecuciones, motor CLI asíncrono seguro, human gate de detención de comandos riesgosos, y consolas de logs en frontend.
 
 ## Required reading by role
 
