@@ -5,7 +5,7 @@
 - Project ID: `orquestador-agentes-ia`
 - Scope: `project`
 - Version: `0.1`
-- Status: `DRAFT`
+- Status: `APPROVED`
 
 ## Criteria
 

@@ -1,0 +1,256 @@
+openapi: 3.0.3
+info:
+  title: Orquestador de Agentes IA - Project Registry API
+  description: API REST para el registro y gestión de proyectos locales dentro del orquestador.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Servidor de desarrollo local
+paths:
+  /projects:
+    post:
+      summary: Registrar un nuevo proyecto
+      operationId: registerProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreateInput'
+      responses:
+        '201':
+          description: Proyecto registrado con éxito (estado DRAFT)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Datos de entrada inválidos (ej. la ruta del repositorio no existe)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflicto (clave corta de proyecto duplicada)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      summary: Listar proyectos registrados
+      operationId: listProjects
+      parameters:
+        - name: includeArchived
+          in: query
+          description: Si se deben incluir los proyectos archivados en la lista.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de proyectos obtenida con éxito
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Project'
+  /projects/{id}:
+    get:
+      summary: Consultar un proyecto por ID
+      operationId: getProjectById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID del proyecto a consultar
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Datos del proyecto obtenidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          description: Proyecto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      summary: Actualizar metadatos permitidos de un proyecto
+      operationId: updateProject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID del proyecto a actualizar
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdateInput'
+      responses:
+        '200':
+          description: Proyecto actualizado con éxito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Parámetros inválidos
+        '404':
+          description: Proyecto no encontrado
+  /projects/{id}/archive:
+    put:
+      summary: Archivar un proyecto (borrado lógico)
+      operationId: archiveProject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID del proyecto a archivar
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Proyecto archivado correctamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Transición de estado inválida
+        '404':
+          description: Proyecto no encontrado
+
+components:
+  schemas:
+    Project:
+      type: object
+      required:
+        - id
+        - key
+        - name
+        - status
+        - repositoryPath
+        - defaultBranch
+        - contextPath
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 3fa85f64-5717-4562-b3fc-2c963f66afa6
+        key:
+          type: string
+          example: mi-proyecto-web
+        name:
+          type: string
+          example: Mi Proyecto Web
+        description:
+          type: string
+          example: Aplicación web principal de la empresa.
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, PAUSED, BLOCKED, ARCHIVED]
+          example: DRAFT
+        repositoryPath:
+          type: string
+          example: /home/usuario/proyectos/mi-web
+        defaultBranch:
+          type: string
+          example: main
+        contextPath:
+          type: string
+          example: .ai
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-07-14T21:40:00Z'
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2026-07-14T21:45:00Z'
+        archivedAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+
+    ProjectCreateInput:
+      type: object
+      required:
+        - key
+        - name
+        - repositoryPath
+      properties:
+        key:
+          type: string
+          pattern: '^[a-z0-9-_]+$'
+          example: mi-proyecto-web
+        name:
+          type: string
+          maxLength: 100
+          example: Mi Proyecto Web
+        description:
+          type: string
+          example: Aplicación web principal de la empresa.
+        repositoryPath:
+          type: string
+          example: /home/usuario/proyectos/mi-web
+        defaultBranch:
+          type: string
+          default: main
+          example: main
+        contextPath:
+          type: string
+          default: .ai
+          example: .ai
+
+    ProjectUpdateInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          example: Mi Proyecto Web Renovado
+        description:
+          type: string
+          example: Descripción actualizada del proyecto web.
+        defaultBranch:
+          type: string
+          example: master
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          example: INVALID_REPOSITORY_PATH
+        message:
+          type: string
+          example: La ruta local del repositorio especificada no existe.
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-07-14T21:55:00Z'
+        details:
+          type: array
+          items:
+            type: string
+          example: ["El directorio '/home/usuario/proyectos/mi-web' no es accesible."]

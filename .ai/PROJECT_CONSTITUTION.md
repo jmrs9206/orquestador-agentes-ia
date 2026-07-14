@@ -3,9 +3,9 @@
 ## Metadata
 
 - Project ID: `orquestador-agentes-ia`
-- Status: `NEEDS_APPROVAL`
+- Status: `APPROVED`
 - Version: `0.1`
-- Approved by: `PENDING`
+- Approved by: `Propietario Humano`
 - Effective from: `2026-07-14`
 
 ## Purpose of this constitution

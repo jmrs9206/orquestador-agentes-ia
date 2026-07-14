@@ -3,25 +3,24 @@
 ## Context identity
 
 - Project ID: `orquestador-agentes-ia`
-- Context version: `0.1`
+- Context version: `0.5`
 - Repository root: `/home/jmrs/Documentos/PROYECTOS/JMRS/orquestadorIA`
-- Branch/worktree: `main`
-- Commit verified: `NONE`
+- Branch/worktree: `feature/project-registry`
+- Commit verified: `41a1343cd4083308e6ffbf8921940b99b99a74c5`
 - Last verified: `2026-07-14`
 - Curated by: `@context`
 
 ## One-paragraph summary
 
-Inicialización local del orquestador multiproyecto con reglas de gobierno y exclusión de dependencias del blueprint. El proyecto se encuentra en estado de preparación de repositorio local y configuración del control de versiones. Se han copiado las plantillas y reglas de control en la raíz del workspace, y se ha creado un archivo `.gitignore` robusto. La identidad Git global está verificada, pero la autenticación con GitHub CLI requiere acción manual del usuario debido a que `gh` local corresponde a `gitsome` no autenticado.
+Inicialización local y remota del orquestador multiproyecto con reglas de gobierno y exclusión de dependencias del blueprint. El repositorio Git local se inicializó correctamente en la rama `main` con el commit inicial de gobierno. El repositorio remoto en GitHub fue creado y enlazado, y la rama principal fue publicada con éxito. Las políticas y el charter han recibido aprobación humana explícita como línea base inicial.
 
 ## Verified facts
 
-| ID | Fact | Source | Verified | Confidence |
-|---|---|---|---|---|
 | F-001 | El workspace actual no está dentro de ningún repositorio Git superior | `git rev-parse --show-toplevel` | 2026-07-14 | HIGH |
 | F-002 | Los archivos del blueprint operativo se han copiado con éxito a la raíz del workspace | `find` / `ls -la` | 2026-07-14 | HIGH |
 | F-003 | La identidad de Git global está configurada como Julio Rodríguez (juliorodriguez@vdenergy.es) | `git config user.name` / `user.email` | 2026-07-14 | HIGH |
-| F-004 | GitHub CLI en el sistema es la herramienta gitsome, no autenticada | `gh me` / `gh auth status` | 2026-07-14 | HIGH |
+| F-004 | El repositorio remoto está enlazado a origin y sincronizado con el commit local inicial | `git ls-remote origin` / `git remote -v` | 2026-07-14 | HIGH |
+| F-005 | El repositorio remoto es público por autorización explícita del propietario humano | Historial de chat / verificación manual | 2026-07-14 | HIGH |
 
 ## Current state (`CURRENT`)
 
@@ -40,8 +39,25 @@ Inicialización local del orquestador multiproyecto con reglas de gobierno y exc
   REQUIREMENTS.md
   ACCEPTANCE_CRITERIA.md
   HANDOFF.md
+  TASK_001_BACKEND_INIT.md
+  TASK_002_BACKEND_REGISTRY.md
+  TASK_003_FRONTEND_INIT.md
+  TASK_004_FRONTEND_REGISTRY.md
+  TASK_005_INTEGRATION_E2E.md
+apps/
+  web/                          # Next.js Frontend App
 docs/
+  adr/
+    ADR-001-stack-tecnologico.md
+    ADR-002-project-registry.md
+infrastructure/
+  compose.yaml                  # Docker Compose configuration
+packages/
+  contracts/                    # API shared contracts (openapi.yaml)
+services/
+  orchestrator-api/             # Spring Boot Backend API
 templates/
+.env.example
 .gitignore
 GEMINI.md
 MANIFEST.md
@@ -50,17 +66,23 @@ README.md
 
 ### Implemented capabilities
 
-- Ninguna (Fase de definición de gobierno y configuración inicial).
+- Estructura de gobierno y plantillas inicializadas localmente y subidas al remoto `origin`.
+- Rama `main` configurada como rama predeterminada local y remota.
+- Backend Spring Boot completamente inicializado, estructurado de forma modular (dominio, aplicación, infraestructura, api), con persistencia MySQL, Flyway migrations y Testcontainers.
+- Endpoints REST `/api/projects` expuestos para crear, listar, detallar y archivar proyectos locales con validaciones y máquina de estados.
+- Frontend Next.js con TypeScript, Tailwind CSS y Vitest configurado con panel de visualización, filtros y formulario funcional.
+- Configuración de Dockerfiles multi-stage y compose.yaml validados para despliegue local de la composición.
 
 ### Known limitations
 
-- No existe repositorio Git local configurado con commits (pendiente de inicialización de la rama local `main` y primer commit).
-- No se dispone de autenticación remota en GitHub CLI (gh es gitsome, no autenticado).
+- El orquestador cuenta con el registro de proyectos locales, pero carece de la orquestación real de agentes, tareas y workflows en esta iteración inicial.
 
 ## Target state (`TARGET`)
 
-- Repositorio Git local inicializado en la rama `main` con un commit inicial que incluya los archivos de gobierno y del blueprint.
-- Repositorio remoto privado creado en GitHub bajo la cuenta del propietario y asociado como remoto `origin`.
+- Creación e inicialización del proyecto Spring Boot y Next.js en el monorepo.
+- Implementación y validación del backend del Project Registry (API REST y persistencia MySQL).
+- Desarrollo de la interfaz gráfica mínima en Next.js para listar y registrar proyectos.
+- Validación mediante JUnit (Testcontainers MySQL) y Playwright (E2E).
 
 ## Active constraints
 
@@ -71,25 +93,22 @@ README.md
 
 | ADR | Decision | Status | Supersedes |
 |---|---|---|---|
-| ADR-001 | Licencia como UNKNOWN pendiente de aprobación humana | ACCEPTED | - |
+| ADR-001 | Selección de stack definitivo (Java, Next.js, MySQL, Maven) | ACCEPTED | ADR-002 anterior |
+| ADR-002 | Diseño del Project Registry (Estados y API REST) | PROPOSED | - |
+| ADR-003 | Visibilidad de repositorio remoto como Público por autorización humana | ACCEPTED | - |
 
 ## External systems and contracts
 
-| System | Status | Contract source | Credentials available? | Notes |
-|---|---|---|---|---|
-| GitHub | CANDIDATE | gh cli | NO | Requiere ejecutar `gh auth login` en el host del usuario |
+| GitHub | CONFIRMED | git remote | YES | Repositorio remoto público enlazado y accesible |
 
 ## Unknowns and conflicts
 
-| ID | Type | Description | Impact | Resolution owner |
-|---|---|---|---|---|
-| U-001 | UNKNOWN | Autenticación en GitHub CLI (gitsome) | Impide la creación del remoto automáticamente en esta fase | Human Owner |
-| U-002 | UNKNOWN | Decisión de Licencia definitiva | Determina las reglas de reutilización legal y distribución | Human Owner |
+| U-001 | UNKNOWN | Decisión de Licencia definitiva | Determina las reglas de reutilización legal y distribución | Human Owner |
 
 ## Current iteration
 
-- Goal: Bootstrapping local de archivos de gobierno e inicialización del repositorio local.
-- Approved tasks: Creación de archivos `.ai/`, configuración de `.gitignore` e inicialización de Git local.
+- Goal: Creación del esqueleto del monorepo y el módulo Project Registry (task-001 a task-005).
+- Approved tasks: Inicializar Spring Boot con base de datos MySQL, crear controladores REST con máquina de estados, inicializar Next.js con Tailwind, configurar compose.yaml y Playwright E2E.
 
 ## Required reading by role
 
@@ -103,3 +122,7 @@ README.md
 | Version | Date | Change | Evidence |
 |---|---|---|---|
 | 0.1 | 2026-07-14 | Creación de archivos `.ai/` y configuración de `.gitignore` | `find .ai/` |
+| 0.2 | 2026-07-14 | Inicialización de Git local, configuración de remoto público y push exitoso | `git status` / `git ls-remote` |
+| 0.3 | 2026-07-14 | Aprobación de documentos de gobierno e inicio de fase de arquitectura | Aprobación en chat |
+| 0.4 | 2026-07-14 | Redefinición a stack Java/Next.js, creación de estructura de carpetas, ADRs y tareas del Project Registry | `git status` |
+| 0.5 | 2026-07-14 | Implementación de las tareas task-001 a task-005, compilación y pruebas exitosas | `mvn clean test` y `npm run test` |

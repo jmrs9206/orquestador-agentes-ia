@@ -6,10 +6,11 @@
 - Project name: `Orquestador de Agentes IA`
 - Owner: `Propietario Humano`
 - Repository: `/home/jmrs/Documentos/PROYECTOS/JMRS/orquestadorIA`
-- Status: `NEEDS_APPROVAL`
+- Status: `APPROVED`
 - Version: `0.1`
 - Last verified: `2026-07-14`
-- Approved by: `PENDING`
+- Approved by: `Propietario Humano`
+
 
 ## Problem
 
@@ -87,10 +88,10 @@ El primer MVP excluye explícitamente:
 
 ## Approval gate
 
-- [ ] Problem approved
-- [ ] Scope approved
-- [ ] Non-goals approved
-- [ ] Success criteria approved
-- [ ] Constraints reviewed
+- [x] Problem approved
+- [x] Scope approved
+- [x] Non-goals approved
+- [x] Success criteria approved
+- [x] Constraints reviewed
 
-Approval statement: `PENDING`
+Approval statement: `Aprobado por el propietario humano el 2026-07-14`

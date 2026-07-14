@@ -4,7 +4,7 @@
 
 - Project ID: `orquestador-agentes-ia`
 - Version: `0.1`
-- Status: `DRAFT`
+- Status: `APPROVED`
 - Last updated: `2026-07-14`
 
 ## Requirement rules

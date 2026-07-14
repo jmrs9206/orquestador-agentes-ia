@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  mysql-db:
+    image: mysql:8.0.36
+    container_name: orq-mysql-db
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-orquestador_db}
+      MYSQL_USER: ${DB_USERNAME:-orq_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-orq_pass_123}
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  orchestrator-api:
+    build:
+      context: ../services/orchestrator-api
+      dockerfile: Dockerfile
+    container_name: orq-orchestrator-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/${DB_DATABASE:-orquestador_db}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-orq_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-orq_pass_123}
+    depends_on:
+      - mysql-db
+
+  web-app:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+    container_name: orq-web-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+    depends_on:
+      - orchestrator-api
+
+volumes:
+  mysql_data:
+    driver: local
