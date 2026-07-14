@@ -8,18 +8,29 @@ vi.mock('../services/api', () => ({
   api: {
     listProjects: vi.fn(),
     createProject: vi.fn(),
-    archiveProject: vi.fn()
+    archiveProject: vi.fn(),
+    listAgents: vi.fn().mockResolvedValue([]),
+    createAgent: vi.fn(),
+    listTasks: vi.fn().mockResolvedValue([]),
+    createTask: vi.fn(),
+    changeTaskStatus: vi.fn(),
+    listExecutions: vi.fn().mockResolvedValue([]),
+    getExecutionById: vi.fn(),
+    triggerExecution: vi.fn(),
+    approveExecution: vi.fn(),
+    rejectExecution: vi.fn(),
+    getExecutionLogs: vi.fn().mockResolvedValue("")
   }
 }));
 
 describe('Home Page Dashboard', () => {
-  it('renders title and loading skeleton initially', async () => {
+  it('renders title and sub-heading initially', async () => {
     vi.mocked(api.listProjects).mockReturnValue(new Promise(() => {}));
 
     render(<Home />);
 
     expect(screen.getByText('Orquestador de Agentes IA')).toBeDefined();
-    expect(screen.getByText('Plano de control y registro de proyectos locales')).toBeDefined();
+    expect(screen.getByText('Control de Agentes Autónomos Multiproyecto')).toBeDefined();
   });
 
   it('renders empty state when no projects returned', async () => {
@@ -28,7 +39,7 @@ describe('Home Page Dashboard', () => {
     render(<Home />);
 
     await waitFor(() => {
-      expect(screen.getByText('No hay proyectos activos registrados.')).toBeDefined();
+      expect(screen.getByText('No hay proyectos registrados en el orquestador.')).toBeDefined();
     });
   });
 
@@ -36,7 +47,7 @@ describe('Home Page Dashboard', () => {
     vi.mocked(api.listProjects).mockResolvedValue([
       {
         id: '1',
-        key: 'project-1',
+        key: 'PROJECT-1',
         name: 'Project One',
         description: 'First project desc',
         status: 'ACTIVE',

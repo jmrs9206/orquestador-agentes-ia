@@ -3,10 +3,10 @@
 ## Context identity
 
 - Project ID: `orquestador-agentes-ia`
-- Context version: `0.6`
+- Context version: `0.7`
 - Repository root: `/home/jmrs/Documentos/PROYECTOS/JMRS/orquestadorIA`
-- Branch/worktree: `feature/project-registry`
-- Commit verified: `41a1343cd4083308e6ffbf8921940b99b99a74c5`
+- Branch/worktree: `feature/orchestration-layer`
+- Commit verified: `d6e8574cd4083308e6ffbf8921940b99b99a74c5`
 - Last verified: `2026-07-14`
 - Curated by: `@context`
 
@@ -73,14 +73,17 @@ README.md
 
 - Estructura de gobierno y plantillas inicializadas localmente y subidas al remoto `origin`.
 - Rama `main` configurada como rama predeterminada local y remota.
-- Backend Spring Boot completamente inicializado, estructurado de forma modular (dominio, aplicación, infraestructura, api), con persistencia MySQL, Flyway migrations y Testcontainers.
-- Endpoints REST `/api/projects` expuestos para crear, listar, detallar y archivar proyectos locales con validaciones y máquina de estados.
-- Frontend Next.js con TypeScript, Tailwind CSS y Vitest configurado con panel de visualización, filtros y formulario funcional.
+- Backend Spring Boot modular con persistencia MySQL, Flyway migrations y Testcontainers.
+- API REST para registrar proyectos, agentes, tareas y ejecuciones con máquina de estados y validación de reglas de negocio.
+- CLI Process Runner asíncrono con saneamiento y limpieza del entorno de variables de host para ejecuciones seguras.
+- Human Gate y validación cruzada: intercepta comandos de riesgo y bloquea auto-aprobación del revisor de tareas.
+- Panel Next.js / React (Workspace Console) con visor de logs en tiempo real, tabulador de agentes/tareas y banner interactivo de seguridad del Human Gate.
 - Configuración de Dockerfiles multi-stage y compose.yaml validados para despliegue local de la composición.
 
 ### Known limitations
 
-- El orquestador cuenta con el registro de proyectos locales, pero carece de la orquestación real de agentes, tareas y workflows en esta iteración inicial.
+- El orquestador cuenta con persistencia y ejecución CLI manual, pero carece de la integración real de la API de Gemini (IA) para ejecución automatizada de tareas en base a prompts.
+- No se han codificado los validadores físicos de filesystem (aislamiento absoluto de rutas de proyectos) ni la auditoría automatizada en base a contratos generados en disco.
 
 ## Target state (`TARGET`)
 
@@ -112,8 +115,8 @@ README.md
 
 ## Current iteration
 
-- Goal: Diseño y planificación del motor de Orquestación y Ejecución de Agentes (task-006 a task-010).
-- Approved tasks: Modelado de persistencia de agentes y ejecuciones, motor CLI asíncrono seguro, human gate de detención de comandos riesgosos, y consolas de logs en frontend.
+- Goal: Diseño e implementación del motor de agentes IA (Gemini SDK), aislamiento físico del filesystem y auditoría de tareas (task-011 a task-016).
+- Approved tasks: Configuración del cliente Gemini API, validadores de path traversal para directorios de trabajo, generación dinámica de TASK_CONTRACT y EVIDENCE_LOG, y controles de roles de aprobación.
 
 ## Required reading by role
 
@@ -131,3 +134,5 @@ README.md
 | 0.3 | 2026-07-14 | Aprobación de documentos de gobierno e inicio de fase de arquitectura | Aprobación en chat |
 | 0.4 | 2026-07-14 | Redefinición a stack Java/Next.js, creación de estructura de carpetas, ADRs y tareas del Project Registry | `git status` |
 | 0.5 | 2026-07-14 | Implementación de las tareas task-001 a task-005, compilación y pruebas exitosas | `mvn clean test` y `npm run test` |
+| 0.6 | 2026-07-14 | Planificación y diseño de la Capa de Orquestación (ADR-003, task-006 a task-010) | `git status` |
+| 0.7 | 2026-07-14 | Implementación del motor de orquestación, Human Gate, interfaz gráfica de consola y pase de pruebas unitarias/E2E | `npx playwright test` |
