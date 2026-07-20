@@ -1,7 +1,3 @@
-# Blueprint folders and backups
-Orquestador_IA_Blueprint_v0.2/
-Orquestador_IA_Blueprint_v0.2.zip
-
 # Environment variables and secrets
 .env
 .env.local

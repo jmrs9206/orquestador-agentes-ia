@@ -1,4 +1,4 @@
-# Orquestador de Agentes IA — Blueprint operativo v0.2
+# Orquestador de Agentes IA
 
 ## Propósito
 
