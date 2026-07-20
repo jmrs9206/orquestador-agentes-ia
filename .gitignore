@@ -53,6 +53,8 @@ target/
 .eslintcache
 .parcel-cache
 .turbo/
+playwright-report/
+test-results/
 __pycache__/
 *.pyc
 *.pyo

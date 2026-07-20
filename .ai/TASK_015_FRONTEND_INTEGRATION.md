@@ -3,10 +3,10 @@
 - Iteration ID: `it-03`
 - Task ID: `task-015`
 - Title: Integración UI del Workspace de Agentes IA
-- Status: `DRAFT`
-- Assigned role: `@developer`
+- Status: `DONE`
+- Assigned role: `@frontend`
 - Reviewer role: `@reviewer`
-- Run ID: `none`
+- Run ID: `bootstrap-github-2026-07-14`
 - Branch/worktree: `feature/ai-integration-layer`
 
 ## Objective

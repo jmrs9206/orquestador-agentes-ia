@@ -51,6 +51,8 @@ export default function Home() {
   const [execAgentId, setExecAgentId] = useState("");
   const [execCmdLine, setExecCmdLine] = useState("");
   const [execFormError, setExecFormError] = useState<string | null>(null);
+  const [activeTaskTab, setActiveTaskTab] = useState<'EXECUTION' | 'CONTRACT' | 'EVIDENCE'>('EXECUTION');
+  const [execMode, setExecMode] = useState<'CLI' | 'GEMINI'>('CLI');
 
   // Console terminal automatic scrolling ref
   const terminalEndRef = useRef<HTMLDivElement | null>(null);
@@ -295,10 +297,14 @@ export default function Home() {
     setExecFormError(null);
     if (!selectedTask) return;
 
+    const finalCmd = execMode === 'GEMINI'
+      ? `gemini run --agent=${execAgentId} --prompt="${execCmdLine.replace(/"/g, '\\"')}"`
+      : execCmdLine;
+
     try {
       const trigger = await api.triggerExecution(selectedTask.id, {
         agentId: execAgentId,
-        commandLine: execCmdLine
+        commandLine: finalCmd
       });
       setExecCmdLine("");
       setSelectedExecution(trigger);
@@ -866,6 +872,14 @@ export default function Home() {
                               {selectedTask.status}
                             </span>
                             <span className="text-xs text-slate-500">ID: {selectedTask.id.substring(0, 8)}...</span>
+                            
+                            {/* Role Badges */}
+                            <span className="text-[9px] px-2 py-0.5 rounded border font-semibold bg-indigo-950/80 text-indigo-300 border-indigo-800/80">
+                              @developer: {selectedTask.assigneeId || "No asignado"}
+                            </span>
+                            <span className="text-[9px] px-2 py-0.5 rounded border font-semibold bg-emerald-950/80 text-emerald-300 border-emerald-800/80">
+                              @reviewer: {selectedTask.reviewerId || "No asignado"}
+                            </span>
                           </div>
                           <h3 className="text-lg font-bold text-slate-100">{selectedTask.title}</h3>
                           <p className="text-xs text-slate-400 mt-1">{selectedTask.description || "Sin descripción."}</p>
@@ -888,57 +902,157 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Execution triggers & history grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        
-                        {/* Execute Form (Left column) */}
-                        <div className="md:col-span-1 space-y-4">
-                          <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-                            Lanzar Comando
-                          </h4>
+                      {/* Workspace Navigation Tabs */}
+                      <div className="flex gap-2 border-b border-slate-850 pb-2">
+                        <button
+                          type="button"
+                          onClick={() => setActiveTaskTab('EXECUTION')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            activeTaskTab === 'EXECUTION'
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                              : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                          }`}
+                        >
+                          Lanzamiento y Ejecuciones
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTaskTab('CONTRACT')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            activeTaskTab === 'CONTRACT'
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                              : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                          }`}
+                        >
+                          Contrato TASK_CONTRACT.md
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setActiveTaskTab('EVIDENCE')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            activeTaskTab === 'EVIDENCE'
+                              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                              : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-slate-800'
+                          }`}
+                        >
+                          Evidencia EVIDENCE_LOG.md
+                        </button>
+                      </div>
 
-                          <form onSubmit={handleTriggerExecution} className="space-y-3 text-xs">
-                            <div>
-                              <label className="block text-slate-400 mb-1">Agente Emisor</label>
-                              <select
-                                required
-                                value={execAgentId}
-                                onChange={(e) => setExecAgentId(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 focus:outline-none focus:border-indigo-500 text-white"
-                              >
-                                <option value="">(Selecciona Agente)</option>
-                                {agents.map(ag => (
-                                  <option key={ag.id} value={ag.id}>{ag.name}</option>
-                                ))}
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-slate-400 mb-1">Comando CLI (Terminal)</label>
-                              <input
-                                type="text"
-                                required
-                                placeholder="Ej. echo 'Hello orquestador'"
-                                value={execCmdLine}
-                                onChange={(e) => setExecCmdLine(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 focus:outline-none focus:border-indigo-500 text-white"
-                              />
-                            </div>
-
-                            {execFormError && (
-                              <div className="p-2 bg-rose-950/60 border border-rose-800/80 rounded-lg text-rose-300 text-[10px]">
-                                {execFormError}
-                              </div>
-                            )}
-
-                            <button
-                              type="submit"
-                              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg transition-all cursor-pointer shadow-md"
-                            >
-                              Ejecutar
-                            </button>
-                          </form>
+                      {activeTaskTab === 'CONTRACT' && (
+                        <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl font-mono text-xs text-slate-300 space-y-2">
+                          <h4 className="font-bold text-indigo-400">.ai/TASK_{selectedTask.id}_CONTRACT.md</h4>
+                          <pre className="whitespace-pre-wrap text-[11px] text-slate-400 bg-slate-900 p-3 rounded-lg border border-slate-850">
+                            # Dynamic Task Contract - {selectedTask.id}{'\n'}
+                            - Project ID: {selectedTask.projectId}{'\n'}
+                            - Title: {selectedTask.title}{'\n'}
+                            - Assignee Role: @developer ({selectedTask.assigneeId || 'Unassigned'}){'\n'}
+                            - Reviewer Role: @reviewer ({selectedTask.reviewerId || 'Unassigned'}){'\n'}
+                            - Status: {selectedTask.status}{'\n\n'}
+                            ## Objectives{'\n'}
+                            {selectedTask.description || 'No specific description provided.'}
+                          </pre>
                         </div>
+                      )}
+
+                      {activeTaskTab === 'EVIDENCE' && (
+                        <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl font-mono text-xs text-slate-300 space-y-2">
+                          <h4 className="font-bold text-emerald-400">.ai/TASK_{selectedTask.id}_EVIDENCE.md</h4>
+                          <pre className="whitespace-pre-wrap text-[11px] text-slate-400 bg-slate-900 p-3 rounded-lg border border-slate-850">
+                            # Execution Evidence Log - {selectedTask.id}{'\n'}
+                            - Active Execution: {selectedExecution ? selectedExecution.id : 'N/A'}{'\n'}
+                            - Status: {selectedExecution ? selectedExecution.status : 'PENDING_RUN'}{'\n'}
+                            - Exit Code: {selectedExecution?.exitCode !== undefined ? selectedExecution.exitCode : 'N/A'}{'\n'}
+                            - Verification Check: {selectedTask.status === 'DONE' ? 'PASS' : 'IN_PROGRESS'}
+                          </pre>
+                        </div>
+                      )}
+
+                      {activeTaskTab === 'EXECUTION' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          
+                          {/* Execute Form (Left column) */}
+                          <div className="md:col-span-1 space-y-4">
+                            <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                              Lanzar Ejecución
+                            </h4>
+
+                            {/* Execution Mode Selector */}
+                            <div className="grid grid-cols-2 gap-1.5 p-1 bg-slate-950 border border-slate-800 rounded-lg text-[10px]">
+                              <button
+                                type="button"
+                                onClick={() => setExecMode('CLI')}
+                                className={`py-1 rounded font-bold cursor-pointer transition-all ${
+                                  execMode === 'CLI'
+                                    ? 'bg-indigo-600 text-white'
+                                    : 'text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                CLI Terminal
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setExecMode('GEMINI')}
+                                className={`py-1 rounded font-bold cursor-pointer transition-all ${
+                                  execMode === 'GEMINI'
+                                    ? 'bg-purple-600 text-white'
+                                    : 'text-slate-400 hover:text-white'
+                                }`}
+                              >
+                                Gemini IA Run
+                              </button>
+                            </div>
+
+                            <form onSubmit={handleTriggerExecution} className="space-y-3 text-xs">
+                              <div>
+                                <label className="block text-slate-400 mb-1">Agente Emisor</label>
+                                <select
+                                  required
+                                  value={execAgentId}
+                                  onChange={(e) => setExecAgentId(e.target.value)}
+                                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 focus:outline-none focus:border-indigo-500 text-white"
+                                >
+                                  <option value="">(Selecciona Agente)</option>
+                                  {agents.map(ag => (
+                                    <option key={ag.id} value={ag.id}>
+                                      {ag.name} ({ag.role || '@agent'})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-slate-400 mb-1">
+                                  {execMode === 'GEMINI' ? 'Prompt del Agente Gemini' : 'Comando CLI (Terminal)'}
+                                </label>
+                                <input
+                                  type="text"
+                                  required
+                                  placeholder={execMode === 'GEMINI' ? 'Ej. Construir cliente Gemini API' : "Ej. echo 'Hello orquestador'"}
+                                  value={execCmdLine}
+                                  onChange={(e) => setExecCmdLine(e.target.value)}
+                                  className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 focus:outline-none focus:border-indigo-500 text-white"
+                                />
+                              </div>
+
+                              {execFormError && (
+                                <div className="p-2 bg-rose-950/60 border border-rose-800/80 rounded-lg text-rose-300 text-[10px]">
+                                  {execFormError}
+                                </div>
+                              )}
+
+                              <button
+                                type="submit"
+                                className={`w-full text-white font-bold py-2 rounded-lg transition-all cursor-pointer shadow-md ${
+                                  execMode === 'GEMINI'
+                                    ? 'bg-purple-600 hover:bg-purple-700'
+                                    : 'bg-indigo-600 hover:bg-indigo-700'
+                                }`}
+                              >
+                                {execMode === 'GEMINI' ? 'Lanzar Agente Gemini' : 'Ejecutar Comando'}
+                              </button>
+                            </form>
+                          </div>
 
                         {/* Executions List (Right column) */}
                         <div className="md:col-span-2 space-y-3">
@@ -989,8 +1103,8 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-
                       </div>
+                      )}
 
                       {/* Monospace terminal console (If execution selected) */}
                       {selectedExecution ? (

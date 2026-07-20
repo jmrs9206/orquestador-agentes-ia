@@ -63,6 +63,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
+    @ExceptionHandler(com.orquestador.orchestrator.domain.exceptions.UnauthorizedRoleException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedRole(com.orquestador.orchestrator.domain.exceptions.UnauthorizedRoleException ex) {
+        ErrorResponse error = new ErrorResponse(
+                "UNAUTHORIZED_ROLE_ACTION",
+                ex.getMessage(),
+                LocalDateTime.now(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
+    @ExceptionHandler(com.orquestador.orchestrator.domain.exceptions.WorkspaceSecurityException.class)
+    public ResponseEntity<ErrorResponse> handleWorkspaceSecurity(com.orquestador.orchestrator.domain.exceptions.WorkspaceSecurityException ex) {
+        ErrorResponse error = new ErrorResponse(
+                "WORKSPACE_SECURITY_VIOLATION",
+                ex.getMessage(),
+                LocalDateTime.now(),
+                null
+        );
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
         ErrorResponse error = new ErrorResponse(

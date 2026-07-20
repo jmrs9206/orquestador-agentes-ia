@@ -3,10 +3,10 @@
 - Iteration ID: `it-03`
 - Task ID: `task-016`
 - Title: Pruebas Integrales de Agentes IA y Sandbox
-- Status: `DRAFT`
-- Assigned role: `@developer`
+- Status: `DONE`
+- Assigned role: `@qa`
 - Reviewer role: `@reviewer`
-- Run ID: `none`
+- Run ID: `bootstrap-github-2026-07-14`
 - Branch/worktree: `feature/ai-integration-layer`
 
 ## Objective

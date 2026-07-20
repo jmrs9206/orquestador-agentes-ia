@@ -3,10 +3,10 @@
 - Iteration ID: `it-03`
 - Task ID: `task-012`
 - Title: Aislamiento Físico de Directorios de Proyecto
-- Status: `DRAFT`
-- Assigned role: `@developer`
+- Status: `DONE`
+- Assigned role: `@backend`
 - Reviewer role: `@reviewer`
-- Run ID: `none`
+- Run ID: `bootstrap-github-2026-07-14`
 - Branch/worktree: `feature/ai-integration-layer`
 
 ## Objective

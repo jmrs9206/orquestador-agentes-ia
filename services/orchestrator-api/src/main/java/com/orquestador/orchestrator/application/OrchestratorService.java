@@ -1,9 +1,21 @@
 package com.orquestador.orchestrator.application;
 
-import com.orquestador.orchestrator.domain.*;
+import com.orquestador.orchestrator.domain.Agent;
+import com.orquestador.orchestrator.domain.AgentRepository;
+import com.orquestador.orchestrator.domain.Execution;
+import com.orquestador.orchestrator.domain.ExecutionRepository;
+import com.orquestador.orchestrator.domain.ExecutionStatus;
+import com.orquestador.orchestrator.domain.Project;
+import com.orquestador.orchestrator.domain.ProjectRepository;
+import com.orquestador.orchestrator.domain.Task;
+import com.orquestador.orchestrator.domain.TaskRepository;
+import com.orquestador.orchestrator.domain.TaskStatus;
 import com.orquestador.orchestrator.domain.exceptions.InvalidProjectStateException;
 import com.orquestador.orchestrator.domain.exceptions.ProjectNotFoundException;
+import com.orquestador.orchestrator.infrastructure.audit.TaskAuditService;
 import com.orquestador.orchestrator.infrastructure.runner.CliRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -14,20 +26,26 @@ import java.util.UUID;
 @Service
 public class OrchestratorService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrchestratorService.class);
+
     private final ProjectRepository projectRepository;
     private final AgentRepository agentRepository;
     private final TaskRepository taskRepository;
     private final ExecutionRepository executionRepository;
     private final CliRunner cliRunner;
+    private final AgentRoleGuard roleGuard;
+    private final TaskAuditService auditService;
 
     public OrchestratorService(ProjectRepository projectRepository, AgentRepository agentRepository,
                                TaskRepository taskRepository, ExecutionRepository executionRepository,
-                               CliRunner cliRunner) {
+                               CliRunner cliRunner, AgentRoleGuard roleGuard, TaskAuditService auditService) {
         this.projectRepository = projectRepository;
         this.agentRepository = agentRepository;
         this.taskRepository = taskRepository;
         this.executionRepository = executionRepository;
         this.cliRunner = cliRunner;
+        this.roleGuard = roleGuard;
+        this.auditService = auditService;
     }
 
     // Agent operations
@@ -47,13 +65,11 @@ public class OrchestratorService {
 
     // Task operations
     public Task createTask(String projectId, String title, String description, String assigneeId, String reviewerId) {
-        // Validate project exists
-        projectRepository.findById(projectId)
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("Proyecto no encontrado con ID: " + projectId));
 
-        // Validate agents exist if assigned
-        if (assigneeId != null) getAgentById(assigneeId);
-        if (reviewerId != null) getAgentById(reviewerId);
+        Agent assignee = (assigneeId != null) ? getAgentById(assigneeId) : null;
+        Agent reviewer = (reviewerId != null) ? getAgentById(reviewerId) : null;
 
         Task task = new Task(
                 UUID.randomUUID().toString(),
@@ -66,7 +82,15 @@ public class OrchestratorService {
                 LocalDateTime.now(),
                 LocalDateTime.now()
         );
-        return taskRepository.save(task);
+        Task saved = taskRepository.save(task);
+
+        try {
+            auditService.generateTaskContract(project, saved, assignee);
+        } catch (Exception e) {
+            log.warn("Failed to generate task contract file: {}", e.getMessage());
+        }
+
+        return saved;
     }
 
     public List<Task> listTasksByProject(String projectId) {
@@ -80,13 +104,13 @@ public class OrchestratorService {
 
     public Task changeTaskStatus(String id, TaskStatus targetStatus) {
         Task existing = getTaskById(id);
+        Project project = projectRepository.findById(existing.getProjectId())
+                .orElseThrow(() -> new ProjectNotFoundException("Proyecto no encontrado"));
 
-        if (targetStatus == TaskStatus.DONE) {
-            // Apply Cross-Review rule: Assignee and reviewer cannot be the same agent
-            if (existing.getAssigneeId() != null && existing.getAssigneeId().equals(existing.getReviewerId())) {
-                throw new IllegalArgumentException("La validación cruzada ha fallado: Un agente no puede revisar y aprobar su propio trabajo asignado.");
-            }
-        }
+        Agent reviewer = (existing.getReviewerId() != null) ? getAgentById(existing.getReviewerId()) : null;
+
+        // Apply strict Role Guard validation before allowing status change
+        roleGuard.validateStatusTransition(existing, targetStatus, reviewer, reviewer != null ? reviewer.getRole() : "@reviewer");
 
         Task updated = new Task(
                 existing.getId(),
@@ -99,7 +123,21 @@ public class OrchestratorService {
                 existing.getCreatedAt(),
                 LocalDateTime.now()
         );
-        return taskRepository.save(updated);
+        Task saved = taskRepository.save(updated);
+
+        // Audit evidence log compilation on completion
+        if (targetStatus == TaskStatus.DONE) {
+            try {
+                List<Execution> executions = executionRepository.findByTaskId(saved.getId());
+                Execution lastExec = executions.isEmpty() ? null : executions.get(executions.size() - 1);
+                String logContent = (lastExec != null) ? getLogContent(lastExec.getId()) : "Task completed by authorized reviewer.";
+                auditService.generateEvidenceLog(project, saved, lastExec, logContent);
+            } catch (Exception e) {
+                log.warn("Failed to generate evidence log file: {}", e.getMessage());
+            }
+        }
+
+        return saved;
     }
 
     // Execution operations
@@ -108,6 +146,9 @@ public class OrchestratorService {
         Agent agent = getAgentById(agentId);
         Project project = projectRepository.findById(task.getProjectId())
                 .orElseThrow(() -> new ProjectNotFoundException("Proyecto no encontrado"));
+
+        // Enforce role authorization: only assigned agent can trigger task execution
+        roleGuard.validateExecutionTrigger(task, agent);
 
         String executionId = UUID.randomUUID().toString();
         String logFilePath = ".ai/logs/exec-" + executionId + ".log";
@@ -128,6 +169,13 @@ public class OrchestratorService {
         );
 
         Execution saved = executionRepository.save(execution);
+
+        // Generate or update Task Contract on disk
+        try {
+            auditService.generateTaskContract(project, task, agent);
+        } catch (Exception e) {
+            log.warn("Failed to update task contract file on execution: {}", e.getMessage());
+        }
 
         // If not risky, trigger immediately
         if (!isRisky) {

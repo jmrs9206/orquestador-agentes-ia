@@ -3,10 +3,10 @@
 - Iteration ID: `it-03`
 - Task ID: `task-011`
 - Title: Integración del Cliente Gemini API
-- Status: `DRAFT`
-- Assigned role: `@developer`
+- Status: `DONE`
+- Assigned role: `@backend`
 - Reviewer role: `@reviewer`
-- Run ID: `none`
+- Run ID: `bootstrap-github-2026-07-14`
 - Branch/worktree: `feature/ai-integration-layer`
 
 ## Objective

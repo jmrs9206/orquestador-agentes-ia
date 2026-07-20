@@ -6,6 +6,7 @@ import com.orquestador.orchestrator.domain.ExecutionStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,10 +15,12 @@ import java.util.concurrent.Executors;
 public class CliRunner {
 
     private final ExecutionRepository executionRepository;
+    private final WorkspaceSandboxGuard sandboxGuard;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
 
-    public CliRunner(ExecutionRepository executionRepository) {
+    public CliRunner(ExecutionRepository executionRepository, WorkspaceSandboxGuard sandboxGuard) {
         this.executionRepository = executionRepository;
+        this.sandboxGuard = sandboxGuard;
     }
 
     public void runAsync(Execution execution, String repoPath) {
@@ -37,6 +40,10 @@ public class CliRunner {
             executionRepository.save(running);
 
             try {
+                // Validate sandbox security constraints before launching command
+                sandboxGuard.validateCommandSafety(execution.getCommandLine());
+                Path validatedLogPath = sandboxGuard.validateAndNormalizePath(repoPath, execution.getLogFilePath());
+
                 ProcessBuilder pb = new ProcessBuilder("bash", "-c", execution.getCommandLine());
                 pb.directory(new File(repoPath));
 
@@ -58,8 +65,8 @@ public class CliRunner {
 
                 pb.redirectErrorStream(true);
 
-                // Setup output file
-                File logFile = new File(repoPath + "/" + execution.getLogFilePath());
+                // Setup output file using validated path
+                File logFile = validatedLogPath.toFile();
                 if (logFile.getParentFile() != null) {
                     logFile.getParentFile().mkdirs();
                 }
@@ -83,7 +90,7 @@ public class CliRunner {
                 executionRepository.save(completed);
 
             } catch (Exception e) {
-                // Log failed process start
+                // Log failed process start due to error or WorkspaceSecurityException
                 Execution failed = new Execution(
                         execution.getId(),
                         execution.getTaskId(),

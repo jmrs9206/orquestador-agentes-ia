@@ -20,7 +20,8 @@ class CliRunnerTest {
     @Test
     void shouldExecuteCommandAndSaveLogs(@TempDir Path tempDir) throws Exception {
         ExecutionRepository mockRepo = mock(ExecutionRepository.class);
-        CliRunner runner = new CliRunner(mockRepo);
+        WorkspaceSandboxGuard sandboxGuard = new WorkspaceSandboxGuard();
+        CliRunner runner = new CliRunner(mockRepo, sandboxGuard);
 
         String execId = "exec-123";
         String logRelativePath = ".ai/logs/exec-123.log";
@@ -61,7 +62,8 @@ class CliRunnerTest {
     @Test
     void shouldHandleFailedCommands(@TempDir Path tempDir) throws Exception {
         ExecutionRepository mockRepo = mock(ExecutionRepository.class);
-        CliRunner runner = new CliRunner(mockRepo);
+        WorkspaceSandboxGuard sandboxGuard = new WorkspaceSandboxGuard();
+        CliRunner runner = new CliRunner(mockRepo, sandboxGuard);
 
         Execution execution = new Execution(
                 "exec-fail",
@@ -88,5 +90,38 @@ class CliRunnerTest {
 
         assertNotNull(finalState);
         assertEquals(42, finalState.getExitCode());
+    }
+
+    @Test
+    void shouldFailExecutionWhenPathTraversalAttempted(@TempDir Path tempDir) throws Exception {
+        ExecutionRepository mockRepo = mock(ExecutionRepository.class);
+        WorkspaceSandboxGuard sandboxGuard = new WorkspaceSandboxGuard();
+        CliRunner runner = new CliRunner(mockRepo, sandboxGuard);
+
+        Execution execution = new Execution(
+                "exec-traversal",
+                "task-123",
+                "agent-123",
+                ExecutionStatus.PENDING,
+                "echo 'pwned'",
+                "../../../../etc/passwd",
+                null,
+                LocalDateTime.now(),
+                null
+        );
+
+        runner.runAsync(execution, tempDir.toAbsolutePath().toString());
+        Thread.sleep(1500);
+
+        ArgumentCaptor<Execution> captor = ArgumentCaptor.forClass(Execution.class);
+        verify(mockRepo, atLeastOnce()).save(captor.capture());
+
+        Execution finalState = captor.getAllValues().stream()
+                .filter(e -> e.getStatus() == ExecutionStatus.FAILED)
+                .findFirst()
+                .orElse(null);
+
+        assertNotNull(finalState);
+        assertEquals(-1, finalState.getExitCode());
     }
 }
