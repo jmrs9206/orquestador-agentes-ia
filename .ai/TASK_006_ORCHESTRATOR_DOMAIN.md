@@ -6,10 +6,10 @@
 - Iteration ID: `it-02`
 - Task ID: `task-006`
 - Title: Modelado de Agentes, Tareas y Ejecuciones en Persistencia
-- Status: `DRAFT`
+- Status: `DONE`
 - Assigned role: `@developer`
 - Reviewer role: `@reviewer`
-- Run ID: `none`
+- Run ID: `bootstrap-github-2026-07-14`
 - Branch/worktree: `feature/orchestration-layer`
 
 ## Objective
