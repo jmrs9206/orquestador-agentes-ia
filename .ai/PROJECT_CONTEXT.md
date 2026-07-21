@@ -12,12 +12,12 @@
 
 ## One-paragraph summary
 
-Inicialización local y remota del orquestador multiproyecto con reglas de gobierno y exclusión de dependencias del blueprint. El repositorio Git local se inicializó correctamente en la rama `main` con el commit inicial de gobierno. El repositorio remoto en GitHub fue creado y enlazado, y la rama principal fue publicada con éxito. Las políticas y el charter han recibido aprobación humana explícita como línea base inicial.
+Inicialización local y remota del orquestador multiproyecto con reglas de gobierno. El repositorio Git local se inicializó correctamente en la rama `main` con el commit inicial de gobierno. El repositorio remoto en GitHub fue creado y enlazado, y la rama principal fue publicada con éxito. Las políticas y el charter han recibido aprobación humana explícita como línea base inicial.
 
 ## Verified facts
 
 | F-001 | El workspace actual no está dentro de ningún repositorio Git superior | `git rev-parse --show-toplevel` | 2026-07-14 | HIGH |
-| F-002 | Los archivos del blueprint operativo se han copiado con éxito a la raíz del workspace | `find` / `ls -la` | 2026-07-14 | HIGH |
+| F-002 | Los archivos del marco operativo se han copiado con éxito a la raíz del workspace | `find` / `ls -la` | 2026-07-14 | HIGH |
 | F-003 | La identidad de Git global está configurada como Julio Rodríguez (juliorodriguez@vdenergy.es) | `git config user.name` / `user.email` | 2026-07-14 | HIGH |
 | F-004 | El repositorio remoto está enlazado a origin y sincronizado con el commit local inicial | `git ls-remote origin` / `git remote -v` | 2026-07-14 | HIGH |
 | F-005 | El repositorio remoto es público por autorización explícita del propietario humano | Historial de chat / verificación manual | 2026-07-14 | HIGH |

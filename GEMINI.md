@@ -1,5 +1,6 @@
 # Contexto raíz del Orquestador de Agentes IA
 
+@./.agents/policies/00_PROTOCOLO_MAESTRO.md
 @./.agents/policies/00_CONSTITUCION_IA.md
 @./.agents/policies/01_FUENTES_DE_VERDAD.md
 @./.agents/policies/02_POLITICA_NO_INVENCION.md
